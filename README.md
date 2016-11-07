@@ -8,3 +8,5 @@ Everybody starts at the same time and if there is mqtt broker configured all the
 To be continued.
 
 This SW has been in use for many years and served in multiple competitions with varying amount of competitors.
+
+A lot of the stuff is in Finnish in the code.
