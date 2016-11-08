@@ -1,12 +1,12 @@
 import json
 class kilpailija:
-    def __init__(self,etunimi,sukunimi,puhelinnumero,seura,kilpasarja,kilpanumero):
+    def __init__(self,etunimi,sukunimi,puhelinnumero,seura,kilpasarja,bibnumber):
         self.etunimi = etunimi
         self.sukunimi = sukunimi
         self.puhelinnumero = puhelinnumero
         self.seura = seura
         self.kilpasarja = kilpasarja
-        self.kilpanumero = kilpanumero
+        self.bibnumber = bibnumber
         self.ajat = []
         self.valiajat = []
         self.valiaikamaara = 0
@@ -21,9 +21,9 @@ class kilpailija:
 
     def __str__(self):
         if(self.sijoitus == 9999):
-            return ('%s, %s %s, %s, %s' % (self.kilpanumero, self.etunimi, self.sukunimi, self.seura, self.kilpasarja))
+            return ('%s, %s %s, %s, %s' % (self.bibnumber, self.etunimi, self.sukunimi, self.seura, self.kilpasarja))
         else:
-            return ('%s, %s %s, %s, %s, %d' % (self.kilpanumero, self.etunimi, self.sukunimi, self.seura, self.kilpasarja,self.sijoitus))
+            return ('%s, %s %s, %s, %s, %d' % (self.bibnumber, self.etunimi, self.sukunimi, self.seura, self.kilpasarja,self.sijoitus))
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True,ensure_ascii=True)#return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
@@ -34,7 +34,7 @@ class kilpailija:
         self.puhelinnumero = input("puhelinnumero: ")
         self.seura = input("seura: ")
         self.kilpasarja = input("kilpasarja: ")
-        self.kilpanumero = int(input("Sukunimi: "))'''
+        self.bibnumber = int(input("Sukunimi: "))'''
 
     def kirjaaAika(self,aika):
         self.ajat.append(aika)
