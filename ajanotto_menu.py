@@ -871,10 +871,13 @@ if __name__ == "__main__":
         portopen = False
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(2)
-        result = sock.connect_ex(('yourveryownmqttbroker', 8883))
-        if result == 0:
-            portopen = True
-        else:
+        try:
+            result = sock.connect_ex(('yourveryownmqttbroker', 8883))
+            if result == 0:
+                portopen = True
+            else:
+                portopen = False
+        except:
             portopen = False
 
         if portopen == True:
