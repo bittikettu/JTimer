@@ -132,7 +132,7 @@ class Kilpailu(Frame):
                 self.writeToLog("Ladattiin "+str(self.__kilpailijoita)+" kilpailijaa järjestelmään")
 
                 for obj in self.competitors:
-                    self.dbase[obj.kilpanumero] = obj
+                    self.dbase[obj.bibnumber] = obj
                 self.dbase.close()
                 """self.writeToLog(('%s'%self.__kilpailijoita))"""
         except:
@@ -154,7 +154,7 @@ class Kilpailu(Frame):
             self.dbase = shelve.open(os.path.splitext(file)[0])
             #print(list(self.dbase.keys()))
             for key in list(self.dbase.keys()):
-                #print(self.dbase[key].kilpanumero)
+                #print(self.dbase[key].bibnumber)
                 self.competitors.append(self.dbase[key])
                 self.__kilpailijoita = self.__kilpailijoita + 1
                 for luokka in self.luokat:
@@ -368,8 +368,8 @@ class Kilpailu(Frame):
     def didnotfinish(self):
         if len(self.syotanumero.get()) > 0:
             for obj in self.competitors:
-                """print(obj.kilpanumero)"""
-                if obj.kilpanumero == self.syotanumero.get():
+                """print(obj.bibnumber)"""
+                if obj.bibnumber == self.syotanumero.get():
                     """print('sama numero jo kirjattu')"""
                     obj.DNF()
                     self.writeToLog(("%s" % self._competitors_finished) + "\t" + self.syotanumero.get() + "\t" + "DNF" + "\t" + obj.etunimi + "\t" + obj.sukunimi + "\t" + obj.seura + "\t" + obj.kilpasarja)
@@ -379,8 +379,8 @@ class Kilpailu(Frame):
     def didnotstart(self):
         if len(self.syotanumero.get()) > 0:
             for obj in self.competitors:
-                """print(obj.kilpanumero)"""
-                if obj.kilpanumero == self.syotanumero.get():
+                """print(obj.bibnumber)"""
+                if obj.bibnumber == self.syotanumero.get():
                     """print('sama numero jo kirjattu')"""
                     obj.DNS()
                     self.writeToLog(("%s" % self._competitors_finished) + "\t" + self.syotanumero.get() + "\t" + "DNS" + "\t" + obj.etunimi + "\t" + obj.sukunimi + "\t" + obj.seura + "\t" + obj.kilpasarja)
@@ -402,7 +402,7 @@ class Kilpailu(Frame):
                         position = position+1
                     if(position == 1):
                         nr1pos = obj;
-                    if competitionnumber == obj.kilpanumero:
+                    if competitionnumber == obj.bibnumber:
                         columniterator = 0
                         if (obj.totaltime != 9999999999):
                             
@@ -411,14 +411,14 @@ class Kilpailu(Frame):
                         else:
                             contents = str(contents + "- ")
                         
-                        contents += str("("+obj.kilpanumero+ ") ")
+                        contents += str("("+obj.bibnumber+ ") ")
                         contents = str(contents + obj.etunimi+" ")
                         contents = str(contents + obj.sukunimi+" ")
                         contents = str(contents + obj.seura+" |")
                         contents = (contents + "sij. "+str(position)+". "+luokka+" ")+"|"
                         obj.Sijoitus(position)
                         retobj = obj
-    #                     f.write(obj.kilpanumero+" ")
+    #                     f.write(obj.bibnumber+" ")
                         if obj.lasttime != 0:
                             #if(position == 1):
                             #    nr1pos = obj;
@@ -426,10 +426,10 @@ class Kilpailu(Frame):
                                 if obj.GetTimeAmount() > 1:
                                     if position == 1:
                                         contents = str(contents + self.ConvertTimeToString(obj.totaltime)+" ")
-                                        self.writeCompetitionTimes(("<dt><strong>"+str(obj.kilpanumero)+" "+obj.etunimi+" "+obj.sukunimi+"</strong></dt><dd>"+luokka+"</dd>"+ "<dd>Sija: "+str(position)+"</dd><dd>"+obj.seura+"</dd><dd>"+self.ConvertTimeToStringAccurate(obj.totaltime)+"</dd>").replace("ä","&auml"))
+                                        self.writeCompetitionTimes(("<dt><strong>"+str(obj.bibnumber)+" "+obj.etunimi+" "+obj.sukunimi+"</strong></dt><dd>"+luokka+"</dd>"+ "<dd>Sija: "+str(position)+"</dd><dd>"+obj.seura+"</dd><dd>"+self.ConvertTimeToStringAccurate(obj.totaltime)+"</dd>").replace("ä","&auml"))
                                     else:
                                         contents = str(contents + self.ConvertTimeToString(obj.totaltime)+ " +" + self.ConvertTimeToString(obj.totaltime - nr1pos.totaltime)+" ")
-                                        self.writeCompetitionTimes(("<dt><strong>"+str(obj.kilpanumero)+" "+obj.etunimi+" "+obj.sukunimi+"</strong></dt><dd>"+luokka+"</dd>"+ "<dd>Sija: "+str(position)+"</dd><dd>"+obj.seura+"</dd><dd>"+ self.ConvertTimeToStringAccurate(obj.totaltime)+ " +" + self.ConvertTimeToString(obj.totaltime - nr1pos.totaltime)+"</dd>").replace("ä","&auml"))
+                                        self.writeCompetitionTimes(("<dt><strong>"+str(obj.bibnumber)+" "+obj.etunimi+" "+obj.sukunimi+"</strong></dt><dd>"+luokka+"</dd>"+ "<dd>Sija: "+str(position)+"</dd><dd>"+obj.seura+"</dd><dd>"+ self.ConvertTimeToStringAccurate(obj.totaltime)+ " +" + self.ConvertTimeToString(obj.totaltime - nr1pos.totaltime)+"</dd>").replace("ä","&auml"))
                                     for aika in obj.valiajat:
                                         contents = str(contents + self.ConvertTimeToString(aika)+" ")
                                         columniterator = columniterator + 1
@@ -444,10 +444,10 @@ class Kilpailu(Frame):
                                 else:
                                     if(position == 1):
                                         contents = str(contents + self.ConvertTimeToString(obj.totaltime)+" ")
-                                        self.writeCompetitionTimes(("<dt><strong>"+str(obj.kilpanumero)+" "+obj.etunimi+" "+obj.sukunimi+"</strong></dt><dd>"+luokka+"</dd>"+ "<dd>Sija: "+str(position)+"</dd><dd>"+obj.seura+"</dd><dd>"+self.ConvertTimeToStringAccurate(obj.totaltime)+"</dd>").replace("ä","&auml"))
+                                        self.writeCompetitionTimes(("<dt><strong>"+str(obj.bibnumber)+" "+obj.etunimi+" "+obj.sukunimi+"</strong></dt><dd>"+luokka+"</dd>"+ "<dd>Sija: "+str(position)+"</dd><dd>"+obj.seura+"</dd><dd>"+self.ConvertTimeToStringAccurate(obj.totaltime)+"</dd>").replace("ä","&auml"))
                                     else:
                                         contents = str(contents + self.ConvertTimeToString(obj.totaltime)+ " +" + self.ConvertTimeToString(obj.totaltime - nr1pos.totaltime)+" ")
-                                        self.writeCompetitionTimes(("<dt><strong>"+str(obj.kilpanumero)+" "+obj.etunimi+" "+obj.sukunimi+"</strong></dt><dd>"+luokka+"</dd>"+ "<dd>Sija: "+str(position)+"</dd><dd>"+obj.seura+"</dd><dd>"+ self.ConvertTimeToStringAccurate(obj.totaltime)+ " +" + self.ConvertTimeToString(obj.totaltime - nr1pos.totaltime)+"</dd>").replace("ä","&auml"))
+                                        self.writeCompetitionTimes(("<dt><strong>"+str(obj.bibnumber)+" "+obj.etunimi+" "+obj.sukunimi+"</strong></dt><dd>"+luokka+"</dd>"+ "<dd>Sija: "+str(position)+"</dd><dd>"+obj.seura+"</dd><dd>"+ self.ConvertTimeToStringAccurate(obj.totaltime)+ " +" + self.ConvertTimeToString(obj.totaltime - nr1pos.totaltime)+"</dd>").replace("ä","&auml"))
                                         #print("+" + self.ConvertTimeToString(obj.totaltime - nr1pos.totaltime))
                                     contents = str(contents + ' ')
                                     contents = str(contents + ' ')
@@ -488,8 +488,8 @@ class Kilpailu(Frame):
             if len(self.syotanumero.get()) > 0:
                 self.found = 0
                 for obj in self.competitors:
-                    """print(obj.kilpanumero)"""
-                    if obj.kilpanumero == self.syotanumero.get():
+                    """print(obj.bibnumber)"""
+                    if obj.bibnumber == self.syotanumero.get():
                         #print("Tasta tuli")
                         """print('sama numero jo kirjattu')"""
                         try:
@@ -502,7 +502,7 @@ class Kilpailu(Frame):
                         break
                     else:
                         self.found = 0
-                    """elif obj.kilpanumero != self.syotanumero.get():
+                    """elif obj.bibnumber != self.syotanumero.get():
                         kilpatemp = kilpailija('Etunimi','Sukunimi','Puhelinnumero','Seura','M',self.syotanumero.get())
                         kilpatemp.kirjaaAika(time.strftime("%H:%M:%S",time.gmtime(self.getKisaaika())))
                         self.competitors.append(kilpatemp)
@@ -562,8 +562,8 @@ class Kilpailu(Frame):
             if len(self.syotanumero.get()) > 0:
                 self.found = 0
                 for obj in self.competitors:
-                    """print(obj.kilpanumero)"""
-                    if obj.kilpanumero == self.syotanumero.get():
+                    """print(obj.bibnumber)"""
+                    if obj.bibnumber == self.syotanumero.get():
                         kirjauslkm = len(obj.ajat)+1
                         if kirjauslkm == self._timeamount:
                             self.strfinished.set(('MAALIKIRJAUS! V.aika %d:'%kirjauslkm)+obj.etunimi+" "+obj.sukunimi+", "+obj.seura+", "+obj.kilpasarja)
@@ -614,7 +614,7 @@ class Kilpailu(Frame):
                     r.td(obj.etunimi)
                     r.td(obj.sukunimi)
                     r.td(obj.seura)
-                    r.td(obj.kilpanumero)
+                    r.td(obj.bibnumber)
                     if obj.lasttime != 0:
                         if(position == 1):
                             nr1pos = obj;
@@ -700,7 +700,7 @@ class Kilpailu(Frame):
                         ws2.cell('B%d'%(rowiterator+6)).value = obj.etunimi
                         ws2.cell('C%d'%(rowiterator+6)).value = obj.sukunimi
                         ws2.cell('D%d'%(rowiterator+6)).value = obj.seura
-                        ws2.cell('E%d'%(rowiterator+6)).value = obj.kilpanumero
+                        ws2.cell('E%d'%(rowiterator+6)).value = obj.bibnumber
                         if obj.lasttime != 0:
                             if(position == 1):
                                 nr1pos = obj;
@@ -732,7 +732,7 @@ class Kilpailu(Frame):
                 self.writeOfficialTimes(0,False)
                 self.dbase = shelve.open('backlog/backlog')
                 for obj in self.competitors:
-                    self.dbase[obj.kilpanumero] = obj
+                    self.dbase[obj.bibnumber] = obj
                 self.dbase.close()
                 sys.exit()
         else:
@@ -771,11 +771,11 @@ class Kilpailu(Frame):
                     else:
                         contents = str(contents + "- ")
                     if tyyppi == 1:
-                        contents += str("("+obj.kilpanumero+ ") ")
+                        contents += str("("+obj.bibnumber+ ") ")
                     contents = str(contents + obj.etunimi+" ")
                     contents = str(contents + obj.sukunimi+" ")
                     contents = str(contents + obj.seura+" ")
-#                     f.write(obj.kilpanumero+" ")
+#                     f.write(obj.bibnumber+" ")
                     if obj.lasttime != 0:
                         if(position == 1):
                             nr1pos = obj;
