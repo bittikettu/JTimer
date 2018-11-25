@@ -667,14 +667,18 @@ class Kilpailu(Frame):
             columniterator = 0
             wb = Workbook()
             #ws = wb.get_active_sheet()
-            ws2 = wb.get_active_sheet() #wb.create_sheet(0) # insert at first position
+            #ws2 = wb.get_active_sheet() #wb.create_sheet(0) # insert at first position
+            ws2 = wb.active
             ws2.title = "Kilpailudatat"
             ws2['A1'].value = 'Paikkakunta'
-            ws2.cell('B1').value = time.strftime("%d.%m.%Y",time.localtime(time.time()))
-            ws2.cell('A3').value = self.__competiontName
-            ws2.cell('A4').value = 'Seinäjoki ' + time.strftime("%d.%m.%Y",time.localtime(time.time()))
+            ws2.cell(1,2,time.strftime("%d.%m.%Y",time.localtime(time.time())))
+            ws2.cell(3,1,self.__competiontName)
+            ws2.cell(4,1,'Seinäjoki ' + time.strftime("%d.%m.%Y",time.localtime(time.time())))
+            ws2.cell(5,5,'Bibnumber')
+            ws2.cell(5,6,'Total')
+            '''ws2.cell('A4').value = 'Seinäjoki ' + time.strftime("%d.%m.%Y",time.localtime(time.time()))
             ws2.cell('E5').value = 'Numero'
-            ws2.cell('F5').value = 'Total'
+            ws2.cell('F5').value = 'Total' '''
             #ws2.cell('G5').value = 'Time1'
             #ws2.cell('H5').value = 'Time2'
             #ws2.cell('I5').value = 'Time3'
@@ -688,22 +692,22 @@ class Kilpailu(Frame):
 
                 ws2.cell(row=(rowiterator+6), column=1,value = luokka)
                 rowiterator = rowiterator+1
-                position = 0;
+                position = 0
                 for obj in self.temporary:
                     if luokka == obj.kilpasarja:
                         columniterator = 0
                         if obj.totaltime != 9999999999:
                             position = position+1
-                            ws2.cell('A%d'%(rowiterator+6)).value = position
+                            ws2.cell((rowiterator+6),1,position)
                         else:
-                            ws2.cell('A%d'%(rowiterator+6)).value = "-"
-                        ws2.cell('B%d'%(rowiterator+6)).value = obj.etunimi
-                        ws2.cell('C%d'%(rowiterator+6)).value = obj.sukunimi
-                        ws2.cell('D%d'%(rowiterator+6)).value = obj.seura
-                        ws2.cell('E%d'%(rowiterator+6)).value = obj.bibnumber
+                            ws2.cell((rowiterator+6),1,"-")
+                        ws2.cell((rowiterator+6),2,obj.etunimi)
+                        ws2.cell((rowiterator+6),3,obj.sukunimi)
+                        ws2.cell((rowiterator+6),4,obj.seura)
+                        ws2.cell((rowiterator+6),5,obj.bibnumber)
                         if obj.lasttime != 0:
                             if(position == 1):
-                                nr1pos = obj;
+                                nr1pos = obj
                             if obj.dnf == False:
                                 if obj.GetTimeAmount() > 1:
                                     ws2.cell(row=6,column=obj.GetTimeAmount()+6).value = obj.GetTimeAmount()
@@ -713,12 +717,12 @@ class Kilpailu(Frame):
                                         columniterator = columniterator + 1
                                     columniterator = 0
                                 else:
-                                    ws2.cell('F%d'%(rowiterator+6)).value = self.ConvertTimeToStringAccurate(obj.totaltime)
+                                    ws2.cell((rowiterator+6),5,self.ConvertTimeToStringAccurate(obj.totaltime))
                             else:
-                                ws2.cell('F%d'%(rowiterator+6)).value = "DNF"
+                                ws2.cell((rowiterator+6),5,"DNF")
                         else:
                             if obj.dnf == True:
-                                ws2.cell('F%d'%(rowiterator+6)).value = "DNF"
+                                ws2.cell((rowiterator+6),5,"DNF")
                         rowiterator = rowiterator+1
             wb.save("xlsx/"+self.__competiontName+'_' + time.strftime("%d_%m_%y_%H_%M_%S",time.localtime(time.time())) + '.xlsx')
     
@@ -734,7 +738,11 @@ class Kilpailu(Frame):
                 for obj in self.competitors:
                     self.dbase[obj.bibnumber] = obj
                 self.dbase.close()
-                sys.exit()
+                try:
+                     sys.exit(0)
+                except:
+                    pass
+               
         else:
             self.writeToLog('Ohjelmaa ei voida sammuttaa kilpailun ollessa käynnissä')
             
@@ -871,7 +879,7 @@ if __name__ == "__main__":
         portopen = False
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(2)
-        result = sock.connect_ex(('yourveryownmqttbroker', 8883))
+        result = sock.connect_ex(('127.0.0.1', 1883))
         if result == 0:
             portopen = True
         else:
@@ -883,15 +891,15 @@ if __name__ == "__main__":
             mqttc.on_message = on_message
             #mqttc.on_log = on_log
 
-            awshost = "yourveryownmqttbroker"
-            awsport = 8883
+            awshost = "127.0.0.1"
+            awsport = 1883
             clientId = "clientId"
             thingName = "thingName"
             caPath = "cert/rootCA.pem"
             certPath = "cert/certificate.pem.crt"
             keyPath = "cert/private.pem.key"
 
-            mqttc.tls_set(caPath, certfile=certPath, keyfile=keyPath, cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_SSLv23, ciphers=None)
+            #mqttc.tls_set(caPath, certfile=certPath, keyfile=keyPath, cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_SSLv23, ciphers=None)
 
             mqttc.connect(awshost, awsport, keepalive=60)
 
