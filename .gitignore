@@ -1,1 +1,6 @@
-backlog/backlog
+backlog/backlog*
+results/*
+xlsx/*
+export.txt
+data.html
+__pycache__/*
