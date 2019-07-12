@@ -198,7 +198,7 @@ class Kilpailu(Frame):
         
 
         self.scroll = Scrollbar(self)
-        self.log = Text(self, state='disabled', width=120, height=30, wrap='none', bg="black", fg="grey", font=('Courier', 10, 'bold'))
+        self.log = Text(self, state='disabled', width=120, height=30, wrap='none', bg="black", fg="yellow", font=('Courier', 10, 'bold'))
         finished = Label(self, textvariable=self.strfinished)
         finished.config(font=('arial', 16, 'bold'))
 

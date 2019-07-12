@@ -19,3 +19,5 @@ Later in 2013: Second evolution started by implementing TkInter to the program a
 Late 2016: MQTT support added for live monitoring and other fun stuff yet to be designed. :D
 
 Late 2018: Removed deprecated functions.
+
+June 2019: Minor readability enhancements.
