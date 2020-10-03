@@ -9,7 +9,7 @@ This SW has been in use for many years and served in multiple competitions with 
 
 A lot of the stuff is in Finnish in the code. Sorry about that.
 
-#Developement history
+## Developement history
 Initial prototype was designed for XCM(Cross Country Mountainbiking) where all the classes leave at the same time. This early prototype had the basic concept but there were no proper GUI. First tested in 5.5.2013.
 
 Later in 2013: Second evolution started by implementing TkInter to the program and "normal" software capabilities such as reading and writing data to diffrent formats. CSV, XLSX etc. This prototype was tested in multiple marathons, mountainbiking, one duathlon and one triathlon. This version is the foundation for this current prototype version.
@@ -21,3 +21,8 @@ Late 2016: MQTT support added for live monitoring and other fun stuff yet to be 
 Late 2018: Removed deprecated functions.
 
 June 2019: Minor readability enhancements.
+
+# Installation
+Get ourself a fresh version of Python 3,  
+ ```pip install openpyxl```
+, ```pip install paho-mqtt```,  that is all.
