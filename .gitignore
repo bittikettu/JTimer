@@ -4,3 +4,4 @@ xlsx/*
 export.txt
 data.html
 __pycache__/*
+.vs/*

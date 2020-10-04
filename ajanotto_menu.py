@@ -14,6 +14,7 @@ from tkinter import *
 from tkinter.filedialog import Open, SaveAs,asksaveasfilename
 from tkinter.messagebox import askyesno
 from tkinter.simpledialog import askstring, askinteger,askfloat
+import tkinter as tk
 
 try:
     import paho.mqtt.client as paho
@@ -65,6 +66,7 @@ class Kilpailu(Frame):
     ftypes2 = [('DAT', '.dat')]
     """ Implements a stop watch frame widget. """                                                                
     def __init__(self, parent=None, **kw):
+
         self.__startTime = 0
         self.__endTime = 0
         self.__competition_running = False
@@ -113,7 +115,7 @@ class Kilpailu(Frame):
         try:
             self.dbase = shelve.open('backlog/backlog' + time.strftime("%d_%m_%y_%H_%M_%S", time.localtime(time.time()))+'shv')
             with open(file, newline='') as csvfile:
-                spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+                spamreader = csv.reader(csvfile, delimiter=';', quotechar='|')
                 """print(spamreader)"""
                 for row in spamreader:
                     self.competitors.append(kilpailija(row[2], row[1],  '+358........', row[3], row[4], row[0]))
@@ -136,7 +138,7 @@ class Kilpailu(Frame):
                 self.dbase.close()
                 """self.writeToLog(('%s'%self.__kilpailijoita))"""
         except:
-            self.writeToLog("CSV-tiedostoa ei löytynyt tai sitä ei voi avatata.");
+            self.writeToLog("CSV-tiedostoa ei löytynyt tai sitä ei voi avatata.")
 
     def lueosallistujatshelve(self):
         self.openDialog = Open(initialdir=self.startfiledir,filetypes=self.ftypes2)
@@ -168,20 +170,22 @@ class Kilpailu(Frame):
             print(list(self.luokat))
             self.writeToLog("Ladattiin "+str(self.__kilpailijoita)+" kilpailijaa järjestelmään")
         except:
-            print("wittu")
+            print("Jotain meni pieleen")
         
   
 
     def makeWidgets(self):                         
         """ Make the time label. """
         self.makemenu()
-        l = Label(self, textvariable=self.timestr)
+        l = Label(self, textvariable=self.timestr, font=('arial', 16, 'bold'), bg="black", fg="yellow")
+        self.dnfbutton = Button(self, text='DNF', command=self.didnotfinish, font=('arial', 16, 'bold'))
+        self.dnsbutton = Button(self, text='DNS', command=self.didnotstart, font=('arial', 16, 'bold'))    
+        self.startbutton = Button(self, text='START', command=self.aloitakilpailu, font=('arial', 16, 'bold'))
 
-
-        self.strfinished.set('maalissa')
-        self.competitionphase.set('--')
+        self.strfinished.set('')
+        self.competitionphase.set('Phase')
         l.config(font=('arial',24,'bold'))
-        self.timestr.set('Kilpailu ei käynnissä')
+        self.timestr.set('Kilpailu ei ole käynnissä')
         l.pack()
 
         """ log = Text(self,relief=SUNKEN).grid(row=2) """
@@ -206,7 +210,7 @@ class Kilpailu(Frame):
         phase.config(font=('arial', 16, 'bold'))
         
         
-        self.numero = Entry(self, textvariable=self.syotanumero, font=('arial', 25, 'bold'), width=5, justify="center", bg="yellow", fg="black")
+        self.numero = Entry(self, textvariable=self.syotanumero, font=('arial', 40, 'bold'), width=5, justify="center", bg="yellow", fg="black")
         
         self.scroll.config(command=self.log.yview)
         self.scroll.pack(side=RIGHT, expand=YES, fill=BOTH)
@@ -216,13 +220,10 @@ class Kilpailu(Frame):
         finished.pack()
         phase.pack()
         
-        dnfbutton = Button(self, text='DNF', command=self.didnotfinish, font=('arial', 16, 'bold'))
-        dnsbutton = Button(self, text='DNS', command=self.didnotstart, font=('arial', 16, 'bold'))
-        
-        startbutton = Button(self, text='Start', command=self.aloitakilpailu, font=('arial', 16, 'bold'))
-        dnfbutton.pack(side=LEFT, expand=NO, fill=BOTH)
-        dnsbutton.pack(side=LEFT, expand=NO, fill=BOTH)
-        startbutton.pack(side=LEFT, expand=YES, fill=BOTH)
+
+        self.dnfbutton.pack(side=LEFT, expand=NO, fill=BOTH)
+        self.dnsbutton.pack(side=LEFT, expand=NO, fill=BOTH)
+        self.startbutton.pack(side=LEFT, expand=YES, fill=BOTH)
         """self.scroll.pack(side=RIGHT,fill=Y)"""
         """slf.log.pack(side=LEFT,expand=YES, fill=BOTH)"""
     
@@ -244,8 +245,8 @@ class Kilpailu(Frame):
         self.menubar.add_cascade(label='Kilpailu', menu=kilpailu)
 
         tiedot = Menu(self.master)
-        tiedot.add_command(label='Lue .dat', command=self.lueosallistujatshelve)
-        tiedot.add_command(label='Lue .csv',command=self.lueosallistujat)
+        tiedot.add_command(label='Lue kilpanauhoite .dat', command=self.lueosallistujatshelve)
+        tiedot.add_command(label='Lue kilpailijat .csv',command=self.lueosallistujat)
         self.menubar.add_cascade(label='Datat', menu=tiedot)
         
         tallenna = Menu(self.master)
@@ -290,6 +291,7 @@ class Kilpailu(Frame):
         if self.__competition_running == False:
             self.__startTime = time.time()
             self.__competition_running = True
+            self.startbutton['state'] = tk.DISABLED
             #print("Kilpailu käynnistetty: ",time.strftime("%H:%M:%S",time.localtime(self.__startTime)))
             self.writeToLog(('Kilpailu käynnistetty: '+time.strftime('%H:%M:%S', time.localtime(self.__startTime))))
             self.writeCompetitionTimes((('<h1>Kilpailu käynnistetty: '+time.strftime('%H:%M:%S', time.localtime(self.__startTime)))+"</h1>").replace("ä","&auml"))
@@ -316,6 +318,7 @@ class Kilpailu(Frame):
             print("Ei määritettyä tietokantaa")
             
         if self.__competition_running == True:
+            self.startbutton['state'] = tk.NORMAL
             self.__endTime = time.time()
             self.__competition_running = False
             #print("Kilpailu pysäytetty: "+time.strftime("%H:%M:%S",time.localtime(self.__endTime)))
@@ -529,7 +532,7 @@ class Kilpailu(Frame):
                     self._competitors_finished=self._competitors_finished+1
                 #self.writeToLog(self.syotanumero.get()+"\t"+self.ConvertTimeToStringAccurate(obj.totaltime)+"\t"+obj.etunimi+"\t"+obj.sukunimi+"\t"+obj.seura+"\t"+obj.kilpasarja)
                 #self.writeCompetitionTimes(self.syotanumero.get()+"\t"+self.ConvertTimeToString(obj.totaltime)+"\t"+self.ConvertTimeToStringAccurate(obj.totaltime)+"\t"+obj.etunimi+"\t"+obj.sukunimi+"\t"+obj.seura+"\t"+obj.kilpasarja)
-                #self.strfinished.set(("#%s"%self._competitors_finished))
+                self.strfinished.set(("#%s"%self._competitors_finished))
                 self.getpositionetc(self.syotanumero.get())
                 
                 try:
@@ -575,6 +578,7 @@ class Kilpailu(Frame):
             else:
                 self.strfinished.set('')
     def writeHTML(self):
+        return 0
         h = HTML()
         h.h1(self.__competiontName)
 
@@ -738,10 +742,7 @@ class Kilpailu(Frame):
                 for obj in self.competitors:
                     self.dbase[obj.bibnumber] = obj
                 self.dbase.close()
-                try:
-                     sys.exit(0)
-                except:
-                    pass
+                exit(0)
                
         else:
             self.writeToLog('Ohjelmaa ei voida sammuttaa kilpailun ollessa käynnissä')
@@ -767,7 +768,7 @@ class Kilpailu(Frame):
         self.temporary = sorted(self.temporary2, key=attrgetter('valiaikamaara'),reverse=True)
         
         for luokka in self.luokat:
-            position = 0;
+            position = 0
             contents = str(contents + luokka+"\n")
             for obj in self.temporary:
                 if luokka == obj.kilpasarja:
@@ -786,7 +787,7 @@ class Kilpailu(Frame):
 #                     f.write(obj.bibnumber+" ")
                     if obj.lasttime != 0:
                         if(position == 1):
-                            nr1pos = obj;
+                            nr1pos = obj
                         if obj.dnf == False:
                             if obj.GetTimeAmount() > 1:
                                 contents = str(contents + self.ConvertTimeToString(obj.totaltime)+" ")
@@ -798,8 +799,7 @@ class Kilpailu(Frame):
                                     contents = str(contents + ' ')
                                 if(len(obj.valiajat) == 2):
                                     contents = str(contents + ' ')
-                                    
-                                    
+  
                                 columniterator = 0
                             else:
                                 if(position == 1):

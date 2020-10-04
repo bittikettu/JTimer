@@ -27,15 +27,6 @@ class kilpailija:
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True,ensure_ascii=True)#return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
-    '''def syotatiedot(self):
-        #os.system("cls")
-        self.etunimi = input("Etunimi: ")
-        self.sukunimi = input("Sukunimi: ")
-        self.puhelinnumero = input("puhelinnumero: ")
-        self.seura = input("seura: ")
-        self.kilpasarja = input("kilpasarja: ")
-        self.bibnumber = int(input("Sukunimi: "))'''
-
     def kirjaaAika(self,aika):
         self.ajat.append(aika)
         self.lasttime = aika
