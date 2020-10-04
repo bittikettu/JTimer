@@ -26,3 +26,5 @@ June 2019: Minor readability enhancements.
 Get ourself a fresh version of Python 3,  
  ```pip install openpyxl```
 , ```pip install paho-mqtt```,  that is all.
+
+Open console to install folder and run ```python ajanotto_menu.py```
