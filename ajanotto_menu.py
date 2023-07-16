@@ -114,7 +114,7 @@ class Kilpailu(Frame):
         
         try:
             self.dbase = shelve.open('backlog/backlog' + time.strftime("%d_%m_%y_%H_%M_%S", time.localtime(time.time()))+'shv')
-            with open(file, newline='') as csvfile:
+            with open(file, newline='', encoding='utf-8') as csvfile:
                 spamreader = csv.reader(csvfile, delimiter=';', quotechar='|')
                 """print(spamreader)"""
                 for row in spamreader:
@@ -179,7 +179,8 @@ class Kilpailu(Frame):
         self.makemenu()
         l = Label(self, textvariable=self.timestr, font=('arial', 16, 'bold'), bg="black", fg="yellow")
         self.dnfbutton = Button(self, text='DNF', command=self.didnotfinish, font=('arial', 16, 'bold'))
-        self.dnsbutton = Button(self, text='DNS', command=self.didnotstart, font=('arial', 16, 'bold'))    
+        self.dnsbutton = Button(self, text='DNS', command=self.didnotstart, font=('arial', 16, 'bold'))
+        self.dsqbutton = Button(self, text='DSQ', command=self.disqualify, font=('arial', 16, 'bold'))
         self.startbutton = Button(self, text='START', command=self.aloitakilpailu, font=('arial', 16, 'bold'))
 
         self.strfinished.set('')
@@ -196,7 +197,7 @@ class Kilpailu(Frame):
         if xlsxsupport == True:
             Button(self, text='XLSX', command=self.writetoxlsx, font=('arial', 16, 'bold')).pack(side=RIGHT, expand=YES, fill=BOTH)
         #Button(self, text='TXT', command=self.writeOfficialTimes,font=('arial',16,'bold')).pack(side=RIGHT, expand=YES, fill=BOTH)
-        #Button(self, text='HTML', command=self.writeHTML,font=('arial',16,'bold')).pack(side=RIGHT, expand=YES, fill=BOTH)
+        Button(self, text='HTML', command=self.writeHTML,font=('arial',16,'bold')).pack(side=RIGHT, expand=YES, fill=BOTH)
         #Button(self, text='Startlist', command=self.writetotxt,font=('arial',16,'bold')).pack(side=BOTTOM, expand=YES, fill=BOTH)
         
         
@@ -223,6 +224,7 @@ class Kilpailu(Frame):
 
         self.dnfbutton.pack(side=LEFT, expand=NO, fill=BOTH)
         self.dnsbutton.pack(side=LEFT, expand=NO, fill=BOTH)
+        self.dsqbutton.pack(side=LEFT, expand=NO, fill=BOTH)
         self.startbutton.pack(side=LEFT, expand=YES, fill=BOTH)
         """self.scroll.pack(side=RIGHT,fill=Y)"""
         """slf.log.pack(side=LEFT,expand=YES, fill=BOTH)"""
@@ -243,6 +245,11 @@ class Kilpailu(Frame):
         kilpailu.add_command(label='Start', command=self.aloitakilpailu)
         kilpailu.add_command(label='Stop',command=self.lopetakilpailu)
         self.menubar.add_cascade(label='Kilpailu', menu=kilpailu)
+
+
+        kilpailija = Menu(self.master)
+        kilpailija.add_command(label='Clear competitor', command=self.clearcompetitor)
+        self.menubar.add_cascade(label='kilpailija', menu=kilpailija)
 
         tiedot = Menu(self.master)
         tiedot.add_command(label='Lue kilpanauhoite .dat', command=self.lueosallistujatshelve)
@@ -277,9 +284,14 @@ class Kilpailu(Frame):
 
     def syotatiedot(self):
 #         i = 0
-        self.__competiontName = askstring('Kilpailun nimi', 'Anna kilpailllu nimi')#input("Kilpailun nimi: ")
+        self.__competiontName = askstring('Kilpailun nimi', 'Anna kilpailun nimi') #input("Kilpailun nimi: ")
         self._timeamount = askinteger('Väliaikojen määrä', 'Anna väliaikojen määrä')
-        
+
+    def clearcompetitor(self):
+#         i = 0
+        bibnum = askstring('Kilpailijan numero', 'Kilpailijan numero') #input("Kilpailun nimi: ")
+        self.clearcompetitorhelper(bibnum)
+        #askinteger
         '''while i < self._timeamount:
             self.__matka.append(askfloat('Matka: '+ str(i+1),'Vaiheen: '+ str(i+1)+' matka'))
             i +=1'''
@@ -374,19 +386,65 @@ class Kilpailu(Frame):
                 """print(obj.bibnumber)"""
                 if obj.bibnumber == self.syotanumero.get():
                     """print('sama numero jo kirjattu')"""
+                    if obj.isStatusOn() == True:
+                        self._competitors_finished=self._competitors_finished-1
+
+                    if obj.isStatusOn() == False:
+                        self._competitors_finished=self._competitors_finished+1
                     obj.DNF()
-                    self.writeToLog(("%s" % self._competitors_finished) + "\t" + self.syotanumero.get() + "\t" + "DNF" + "\t" + obj.etunimi + "\t" + obj.sukunimi + "\t" + obj.seura + "\t" + obj.kilpasarja)
+                    #self.strfinished.set(("#%s"%self._competitors_finished))
+                    #self.writeToLog(("%s" % self._competitors_finished) + "\t" + self.syotanumero.get() + "\t" + "DNF" + "\t" + obj.etunimi + "\t" + obj.sukunimi + "\t" + obj.seura + "\t" + obj.kilpasarja)
+                    self.getpositionetc(obj.bibnumber)
                     self.syotanumero.set('')
                     break
     
+    def clearcompetitorhelper(self,bibnum):
+        for obj in self.competitors:
+            if obj.bibnumber == bibnum:
+                if obj.GetTimeAmount() > 0:
+                    self._competitors_finished=self._competitors_finished-1
+                    contents = str("("+obj.bibnumber+ ") ")
+                    contents = str(contents + obj.etunimi+" ")
+                    contents = str(contents + obj.sukunimi+" ")
+                    contents = str(contents + obj.seura+" CLEARED")
+                    self.writeToLog(contents)
+                    obj.clear()
+                break
+
+
     def didnotstart(self):
         if len(self.syotanumero.get()) > 0:
             for obj in self.competitors:
                 """print(obj.bibnumber)"""
                 if obj.bibnumber == self.syotanumero.get():
                     """print('sama numero jo kirjattu')"""
+                    if obj.isStatusOn() == True:
+                        self._competitors_finished=self._competitors_finished-1
+
+                    if obj.isStatusOn() == False:
+                        self._competitors_finished=self._competitors_finished+1
                     obj.DNS()
-                    self.writeToLog(("%s" % self._competitors_finished) + "\t" + self.syotanumero.get() + "\t" + "DNS" + "\t" + obj.etunimi + "\t" + obj.sukunimi + "\t" + obj.seura + "\t" + obj.kilpasarja)
+                    #self.strfinished.set(("#%s"%self._competitors_finished))
+                    #self.writeToLog(("%s" % self._competitors_finished) + "\t" + self.syotanumero.get() + "\t" + "DNS" + "\t" + obj.etunimi + "\t" + obj.sukunimi + "\t" + obj.seura + "\t" + obj.kilpasarja)
+                    self.getpositionetc(obj.bibnumber)
+                    self.syotanumero.set('')
+                    break
+
+    def disqualify(self):
+        if len(self.syotanumero.get()) > 0:
+            for obj in self.competitors:
+                """print(obj.bibnumber)"""
+                if obj.bibnumber == self.syotanumero.get():
+                    """print('sama numero jo kirjattu')"""
+                    if obj.isStatusOn() == True:
+                        self._competitors_finished=self._competitors_finished-1
+
+                    if obj.isStatusOn() == False:
+                        self._competitors_finished=self._competitors_finished+1
+                    obj.DISQUALIFY()
+                    #self.strfinished.set(("#%s"%self._competitors_finished))
+                    #self.writeToLog(("%s" % self._competitors_finished) + "\t" + self.syotanumero.get() + "\t" + "DNS" + "\t" + obj.etunimi + "\t" + obj.sukunimi + "\t" + obj.seura + "\t" + obj.kilpasarja)
+                    self.getpositionetc(obj.bibnumber)
                     self.syotanumero.set('')
                     break
 
@@ -412,20 +470,24 @@ class Kilpailu(Frame):
                             contents = str(contents + "("+str(self._competitors_finished)+"/"+str(self.__kilpailijoita)+") ")
                             contents = str(contents + " ")
                         else:
-                            contents = str(contents + "- ")
+                            contents = str(contents + "("+str(self._competitors_finished)+"/"+str(self.__kilpailijoita)+") ")
+                            contents = str(contents + " ")
                         
                         contents += str("("+obj.bibnumber+ ") ")
                         contents = str(contents + obj.etunimi+" ")
                         contents = str(contents + obj.sukunimi+" ")
                         contents = str(contents + obj.seura+" |")
-                        contents = (contents + "sij. "+str(position)+". "+luokka+" ")+"|"
+                        if obj.isStatusOn() == False:
+                            contents = (contents + "sij. "+str(position)+". "+luokka+" ")+"|"
+                        else:
+                            contents = (contents + obj.getStatus())
                         obj.Sijoitus(position)
                         retobj = obj
     #                     f.write(obj.bibnumber+" ")
                         if obj.lasttime != 0:
                             #if(position == 1):
                             #    nr1pos = obj;
-                            if obj.dnf == False:
+                            if obj.dnf == False and obj.dns == False and obj.dsq == False:
                                 if obj.GetTimeAmount() > 1:
                                     if position == 1:
                                         contents = str(contents + self.ConvertTimeToString(obj.totaltime)+" ")
@@ -456,10 +518,10 @@ class Kilpailu(Frame):
                                     contents = str(contents + ' ')
                                     contents = str(contents + ' ')
                             else:
-                                contents = str(contents + "DNF")
+                                contents = str(contents + obj.getStatus())
                         else:
-                            if obj.dnf == True:
-                                contents = str(contents + "DNF")
+                            if obj.dnf == False and obj.dns == False and obj.dsq == False:
+                                contents = str(contents + obj.getStatus())
                             else:
                                 contents = str(contents + ' ')
                                 contents = str(contents + ' ')
@@ -496,7 +558,7 @@ class Kilpailu(Frame):
                         #print("Tasta tuli")
                         """print('sama numero jo kirjattu')"""
                         try:
-                            obj.kirjaaAika(self.getKisaaika())
+                            obj.kirjaaAika(self.getKisaaika(),self._timeamount)
                             self.found = 1
                             """self.vaihelaskuri[obj.GetTimeAmount()] = self.vaihelaskuri[obj.GetTimeAmount()]+1"""
                             """self.competitionphase.set("1:"+str(self.vaihelaskuri[1])+"2:"+str(self.vaihelaskuri[2])+"3"+str(self.vaihelaskuri[3]))"""
@@ -524,7 +586,7 @@ class Kilpailu(Frame):
                     else:
                         self.luokkafound = 0
                     
-                    self.kilpatemp.kirjaaAika(self.getKisaaika())
+                    self.kilpatemp.kirjaaAika(self.getKisaaika(), self._timeamount)
                     obj = self.kilpatemp
                     self.competitors.append(self.kilpatemp)
 
@@ -569,16 +631,16 @@ class Kilpailu(Frame):
                     if obj.bibnumber == self.syotanumero.get():
                         kirjauslkm = len(obj.ajat)+1
                         if kirjauslkm == self._timeamount:
-                            self.strfinished.set(('MAALIKIRJAUS! V.aika %d:'%kirjauslkm)+obj.etunimi+" "+obj.sukunimi+", "+obj.seura+", "+obj.kilpasarja)
+                            self.strfinished.set(obj.getStatus() + "+" + ('MAALI! V.aika %d:'%kirjauslkm)+obj.etunimi+" "+obj.sukunimi+", "+obj.seura+", "+obj.kilpasarja)
                         else:
-                            self.strfinished.set(('V.aika %d:'%kirjauslkm)+obj.etunimi+" "+obj.sukunimi+", "+obj.seura+", "+obj.kilpasarja)
+                            self.strfinished.set(obj.getStatus() + " " + ('V.aika %d:'%kirjauslkm)+obj.etunimi+" "+obj.sukunimi+", "+obj.seura+", "+obj.kilpasarja)
                         break
                     else:
                         self.strfinished.set('Numeroa ei ole')
             else:
                 self.strfinished.set('')
     def writeHTML(self):
-        return 0
+        #return 0
         h = HTML()
         h.h1(self.__competiontName)
 
@@ -622,7 +684,7 @@ class Kilpailu(Frame):
                     if obj.lasttime != 0:
                         if(position == 1):
                             nr1pos = obj;
-                        if obj.dnf == False:
+                        if obj.dnf == False and obj.dns == False and obj.dsq == False:
                             if obj.GetTimeAmount() > 1:
                                 if(position == 1):
                                     r.td(self.ConvertTimeToString(obj.totaltime))
@@ -649,7 +711,7 @@ class Kilpailu(Frame):
                         else:
                             r.td("DNF")
                     else:
-                        if obj.dnf == True:
+                        if obj.dnf == False and obj.dns == False and obj.dsq == False:
                             r.td("DNF")
                         else:
                             r.td('')
@@ -680,6 +742,7 @@ class Kilpailu(Frame):
             ws2.cell(4,1,'Seinäjoki ' + time.strftime("%d.%m.%Y",time.localtime(time.time())))
             ws2.cell(5,5,'Bibnumber')
             ws2.cell(5,6,'Total')
+            ws2.cell(5,7,'Diff')
             '''ws2.cell('A4').value = 'Seinäjoki ' + time.strftime("%d.%m.%Y",time.localtime(time.time()))
             ws2.cell('E5').value = 'Numero'
             ws2.cell('F5').value = 'Total' '''
@@ -712,21 +775,25 @@ class Kilpailu(Frame):
                         if obj.lasttime != 0:
                             if(position == 1):
                                 nr1pos = obj
-                            if obj.dnf == False:
+                            if obj.dnf == False and obj.dns == False and obj.dsq == False:
                                 if obj.GetTimeAmount() > 1:
-                                    ws2.cell(row=6,column=obj.GetTimeAmount()+6).value = obj.GetTimeAmount()
+                                    ws2.cell(row=6,column=obj.GetTimeAmount()+7).value = obj.GetTimeAmount()
                                     ws2.cell(row=rowiterator+6,column=6).value = self.ConvertTimeToStringAccurate(obj.totaltime)
+                                    if obj.totaltime - nr1pos.totaltime != 0:
+                                        ws2.cell(row=rowiterator+6,column=7).value = self.ConvertTimeToStringAccurate(obj.totaltime - nr1pos.totaltime)
                                     for aika in obj.valiajat:
-                                        ws2.cell(row=rowiterator+6,column=columniterator+7).value = self.ConvertTimeToStringAccurate(aika)
+                                        ws2.cell(row=rowiterator+6,column=columniterator+8).value = self.ConvertTimeToStringAccurate(aika)
                                         columniterator = columniterator + 1
                                     columniterator = 0
                                 else:
-                                    ws2.cell((rowiterator+6),5,self.ConvertTimeToStringAccurate(obj.totaltime))
+                                    ws2.cell((rowiterator+6),6,self.ConvertTimeToStringAccurate(obj.totaltime))
+                                    if obj.totaltime - nr1pos.totaltime != 0:
+                                        ws2.cell((rowiterator+6),7,self.ConvertTimeToStringAccurate(obj.totaltime - nr1pos.totaltime))
                             else:
-                                ws2.cell((rowiterator+6),5,"DNF")
+                                ws2.cell((rowiterator+6),6,obj.getStatus())
                         else:
-                            if obj.dnf == True:
-                                ws2.cell((rowiterator+6),5,"DNF")
+                            ws2.cell((rowiterator+6),6,obj.getStatus())
+                            
                         rowiterator = rowiterator+1
             wb.save("xlsx/"+self.__competiontName+'_' + time.strftime("%d_%m_%y_%H_%M_%S",time.localtime(time.time())) + '.xlsx')
     
@@ -844,6 +911,8 @@ def makemenu2(win):
     kilpailu.add_command(label='Start')
     kilpailu.add_command(label='Stop')
     top.add_cascade(label='Kilpailu', menu=kilpailu)
+
+
 
 def main():
     root = Tk()
