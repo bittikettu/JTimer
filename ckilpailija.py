@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
+
+
 class kilpailija:
-    def __init__(self,etunimi,sukunimi,puhelinnumero,seura,kilpasarja,bibnumber):
+    def __init__(self, etunimi, sukunimi, puhelinnumero, seura, kilpasarja, bibnumber):
         self.etunimi = etunimi
         self.sukunimi = sukunimi
         self.puhelinnumero = puhelinnumero
@@ -20,29 +22,37 @@ class kilpailija:
         self.totaltime = 9999999999
         self.plusrounds = 0
 
-
-
     def __str__(self):
-        if(self.sijoitus == 9999):
-            return ('%s, %s %s, %s, %s' % (self.bibnumber, self.etunimi, self.sukunimi, self.seura, self.kilpasarja))
+        if self.sijoitus == 9999:
+            return "%s, %s %s, %s, %s" % (self.bibnumber, self.etunimi, self.sukunimi, self.seura, self.kilpasarja)
         else:
-            return ('%s, %s %s, %s, %s, %d' % (self.bibnumber, self.etunimi, self.sukunimi, self.seura, self.kilpasarja,self.sijoitus))
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True,ensure_ascii=True)#return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+            return "%s, %s %s, %s, %s, %d" % (
+                self.bibnumber,
+                self.etunimi,
+                self.sukunimi,
+                self.seura,
+                self.kilpasarja,
+                self.sijoitus,
+            )
 
-    def kirjaaAika(self,aika,valiaikamaara):
+    def toJSON(self):
+        return json.dumps(
+            self, default=lambda o: o.__dict__, sort_keys=True, ensure_ascii=True
+        )  # return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+    def kirjaaAika(self, aika, valiaikamaara):
         self.ajat.append(aika)
         self.lasttime = aika
         if valiaikamaara != self.valiaikamaara:
             self.valiaikamaara = self.valiaikamaara + 1
-        #print(int((aika-int(aika))*100))
+        # print(int((aika-int(aika))*100))
         if len(self.valiajat) == 0:
             self.valiajat.append(aika)
             self.totaltime = self.valiajat[0]
         else:
-            #print(len(self.ajat))
-            self.valiajat.append(aika - self.ajat[len(self.ajat)-2])
-            self.totaltime = self.totaltime + self.valiajat[len(self.valiajat)-1]
+            # print(len(self.ajat))
+            self.valiajat.append(aika - self.ajat[len(self.ajat) - 2])
+            self.totaltime = self.totaltime + self.valiajat[len(self.valiajat) - 1]
         print(self.toJSON())
 
     def clear(self):
@@ -58,7 +68,7 @@ class kilpailija:
         self.totaltime = 9999999999
         self.plusrounds = 0
 
-    def Sijoitus(self,sijoitus):
+    def Sijoitus(self, sijoitus):
         self.sijoitus = sijoitus
 
     def DNF(self):
@@ -66,7 +76,7 @@ class kilpailija:
             self.dnf = True
         else:
             self.dnf = False
-    
+
     def DNS(self):
         if self.dns == False:
             self.dns = True
@@ -88,7 +98,7 @@ class kilpailija:
             return "DSQ"
         else:
             return ""
-    
+
     def isStatusOn(self):
         if self.dnf or self.dns or self.dsq:
             self.toJSON()
@@ -97,7 +107,7 @@ class kilpailija:
             self.toJSON()
             return False
 
-    def Plusrounds(self,rounds):
+    def Plusrounds(self, rounds):
         self.plusrounds = rounds
 
     def GetTimeAmount(self):
