@@ -1,3 +1,8 @@
+# This project has moved into multiple repos to our collab! This still works!
+https://github.com/naapurinpojat
+
+# ---
+
 # JTimer
 A piece of timing sw for competitions such as marathons, cross country mountainbiking, triathlon. Was designed to replace all sorts of Excel/Google Sheets based solutions trying to keep in mind that it should be easy to use.
 
