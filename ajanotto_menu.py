@@ -916,7 +916,7 @@ class Kilpailu(Frame):
         self.temporary2 = sorted(self.competitors, key=attrgetter("totaltime"))
         self.temporary = sorted(self.temporary2, key=attrgetter("valiaikamaara"), reverse=True)
         for luokka in self.luokat:
-            ws2.cell(row=(rowiterator + 6), column=1, value=luokka)
+            ws2.cell(row=(rowiterator + 6), column=2, value=luokka)
             rowiterator = rowiterator + 1
             position = 0
             for obj in self.temporary:
@@ -925,8 +925,6 @@ class Kilpailu(Frame):
                     if obj.totaltime != 9999999999:
                         position = position + 1
                         ws2.cell((rowiterator + 6), 1, position)
-                    else:
-                        ws2.cell((rowiterator + 6), 1, "-")
                     ws2.cell((rowiterator + 6), 2, obj.etunimi)
                     ws2.cell((rowiterator + 6), 3, obj.sukunimi)
                     ws2.cell((rowiterator + 6), 4, obj.seura)
@@ -941,7 +939,7 @@ class Kilpailu(Frame):
                                     obj.totaltime
                                 )
                                 if obj.totaltime - nr1pos.totaltime != 0:
-                                    ws2.cell(row=rowiterator + 6, column=7).value = self.ConvertTimeToStringAccurate(
+                                    ws2.cell(row=rowiterator + 6, column=7).value = self.ConvertTimeToString(
                                         obj.totaltime - nr1pos.totaltime
                                     )
                                 for aika in obj.valiajat:
@@ -956,7 +954,7 @@ class Kilpailu(Frame):
                                     ws2.cell(
                                         (rowiterator + 6),
                                         7,
-                                        self.ConvertTimeToStringAccurate(obj.totaltime - nr1pos.totaltime),
+                                        self.ConvertTimeToString(obj.totaltime - nr1pos.totaltime),
                                     )
                         else:
                             ws2.cell((rowiterator + 6), 6, obj.getStatus())
@@ -964,6 +962,9 @@ class Kilpailu(Frame):
                         ws2.cell((rowiterator + 6), 6, obj.getStatus())
 
                     rowiterator = rowiterator + 1
+
+            rowiterator = rowiterator + 1
+            
         wb.save(
             "xlsx/"
             + self.__competiontName
@@ -1027,7 +1028,7 @@ class Kilpailu(Frame):
                         contents = str(contents + str(position))
                         contents = str(contents + " ")
                     else:
-                        contents = str(contents + "- ")
+                        contents = str(contents + " ")
                     if tyyppi == 1:
                         contents += str("(" + obj.bibnumber + ") ")
                     contents = str(contents + obj.etunimi + " ")
