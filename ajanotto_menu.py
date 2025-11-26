@@ -34,7 +34,10 @@ from random import uniform
 
 # from tkinter import ttk
 
+from tkinter import ttk
 from ckilpailija import kilpailija
+import sv_ttk
+from participant_editor import ParticipantEditor
 
 try:
     from openpyxl import Workbook
@@ -66,7 +69,7 @@ def on_message(client, userdata, msg):
     print(msg.topic + " " + str(msg.payload))
 
 
-class Kilpailu(Frame):
+class Kilpailu(ttk.Frame):
     luokkafound = 0
     startfiledir = "."
     ftypes = [("CSV", ".csv")]
@@ -84,7 +87,7 @@ class Kilpailu(Frame):
         self.temppi = []
         self.competitors = []
         self.found = 0
-        Frame.__init__(self, parent, kw)
+        super().__init__(parent, **kw)
         # Frame.__init__(self, parent, kw)
         """self.pack(expand=YES,fill=BOTH)"""
         self._start = 0.0
@@ -182,11 +185,11 @@ class Kilpailu(Frame):
     def makeWidgets(self):
         """Make the time label."""
         self.makemenu()
-        l = Label(self, textvariable=self.timestr, font=("arial", 16, "bold"), bg="black", fg="yellow")
-        self.dnfbutton = Button(self, text="DNF", command=self.didnotfinish, font=("arial", 16, "bold"))
-        self.dnsbutton = Button(self, text="DNS", command=self.didnotstart, font=("arial", 16, "bold"))
-        self.dsqbutton = Button(self, text="DSQ", command=self.disqualify, font=("arial", 16, "bold"))
-        self.startbutton = Button(self, text="START", command=self.aloitakilpailu, font=("arial", 16, "bold"))
+        l = ttk.Label(self, textvariable=self.timestr, font=("arial", 16, "bold"))
+        self.dnfbutton = ttk.Button(self, text="DNF", command=self.didnotfinish)
+        self.dnsbutton = ttk.Button(self, text="DNS", command=self.didnotstart)
+        self.dsqbutton = ttk.Button(self, text="DSQ", command=self.disqualify)
+        self.startbutton = ttk.Button(self, text="START", command=self.aloitakilpailu)
 
         self.strfinished.set("")
         self.competitionphase.set("Phase")
@@ -199,16 +202,16 @@ class Kilpailu(Frame):
 
         # Button(self, text='Stop', command=self.lopetakilpailu,font=('arial',16,'bold')).pack(side=RIGHT, expand=YES, fill=BOTH)
         if xlsxsupport == True:
-            Button(self, text="XLSX", command=self.writetoxlsx, font=("arial", 16, "bold")).pack(
+            ttk.Button(self, text="XLSX", command=self.writetoxlsx).pack(
                 side=RIGHT, expand=YES, fill=BOTH
             )
         # Button(self, text='TXT', command=self.writeOfficialTimes,font=('arial',16,'bold')).pack(side=RIGHT, expand=YES, fill=BOTH)
-        Button(self, text="HTML", command=self.writeHTML, font=("arial", 16, "bold")).pack(
+        ttk.Button(self, text="HTML", command=self.writeHTML).pack(
             side=RIGHT, expand=YES, fill=BOTH
         )
         # Button(self, text='Startlist', command=self.writetotxt,font=('arial',16,'bold')).pack(side=BOTTOM, expand=YES, fill=BOTH)
 
-        self.scroll = Scrollbar(self)
+        self.scroll = ttk.Scrollbar(self)
         self.log = Text(
             self,
             state="disabled",
@@ -219,20 +222,18 @@ class Kilpailu(Frame):
             fg="yellow",
             font=("Courier", 10, "bold"),
         )
-        finished = Label(self, textvariable=self.strfinished)
+        finished = ttk.Label(self, textvariable=self.strfinished)
         finished.config(font=("arial", 16, "bold"))
 
-        phase = Label(self, textvariable=self.competitionphase)
+        phase = ttk.Label(self, textvariable=self.competitionphase)
         phase.config(font=("arial", 16, "bold"))
 
-        self.numero = Entry(
+        self.numero = ttk.Entry(
             self,
             textvariable=self.syotanumero,
             font=("arial", 40, "bold"),
             width=5,
             justify="center",
-            bg="yellow",
-            fg="black",
         )
 
         self.scroll.config(command=self.log.yview)
@@ -268,6 +269,7 @@ class Kilpailu(Frame):
         self.menubar.add_cascade(label="Kilpailu", menu=kilpailu)
 
         kilpailija = Menu(self.master)
+        kilpailija.add_command(label="Participant Editor", command=self.open_participant_editor)
         kilpailija.add_command(label="Clear competitor", command=self.clearcompetitor)
         self.menubar.add_cascade(label="kilpailija", menu=kilpailija)
 
@@ -309,6 +311,20 @@ class Kilpailu(Frame):
         #         i = 0
         self.__competiontName = askstring("Kilpailun nimi", "Anna kilpailun nimi")  # input("Kilpailun nimi: ")
         self._timeamount = askinteger("Väliaikojen määrä", "Anna väliaikojen määrä")
+
+    def open_participant_editor(self):
+        ParticipantEditor(self, self.competitors, self.update_competitor_list)
+
+    def update_competitor_list(self):
+        # Rebuild luokat list
+        self.luokat = []
+        for obj in self.competitors:
+            if obj.kilpasarja not in self.luokat:
+                self.luokat.append(obj.kilpasarja)
+        self.luokat.sort()
+        
+        self.writeToLog(f"Competitor list updated. Total: {len(self.competitors)}")
+        self.writeToLog(f"Competition classes updated: {', '.join(self.luokat)}")
 
     def clearcompetitor(self):
         #         i = 0
@@ -1109,6 +1125,8 @@ def main():
         root.title("Jtimer 1.0")
     else:
         root.title("Jtimer 1.0, NO MQTT SUPPORT")
+    
+    #sv_ttk.set_theme("dark")
     mainform = Kilpailu(root)
     mainform.pack()
     root.protocol("WM_DELETE_WINDOW", mainform.reallyquit)
@@ -1122,7 +1140,7 @@ def main():
     def valitulostus(event):
         mainform.addline()
 
-    Label(root, text="Yhteislähtöajastus 1.0, viidakkovekara@gmail.com").pack()
+    ttk.Label(root, text="Yhteislähtöajastus 1.0, viidakkovekara@gmail.com").pack()
 
     root.bind("<Key-Return>", insert)
     root.bind("l", valitulostus)
@@ -1130,6 +1148,7 @@ def main():
     for i in range(10):
         root.bind(str(i), getname)
     root.bind("<Key-BackSpace>", getname)
+    sv_ttk.set_theme("dark")
     root.mainloop()
 
 
