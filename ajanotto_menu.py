@@ -38,6 +38,7 @@ from tkinter import ttk
 from ckilpailija import kilpailija
 import sv_ttk
 from participant_editor import ParticipantEditor
+from spectator_view import SpectatorView
 
 try:
     from openpyxl import Workbook
@@ -106,6 +107,18 @@ class Kilpailu(ttk.Frame):
         self.vaihelaskuri = [0, 0, 0, 0, 0, 0, 0]
         self._timeamount = 1
         self.timeupdateinterval = Timer(0.01, self._update)
+        self.spectator_window = None
+
+    def open_spectator_view(self):
+        if self.spectator_window is None or not self.spectator_window.winfo_exists():
+            self.spectator_window = SpectatorView(self)
+            self.update_spectator() # Initial update
+        else:
+            self.spectator_window.lift()
+
+    def update_spectator(self):
+        if self.spectator_window and self.spectator_window.winfo_exists():
+            self.spectator_window.update_recent(self.competitors)
 
     def lueosallistujat(self):
         self.openDialog = Open(initialdir=self.startfiledir, filetypes=self.ftypes)
@@ -270,6 +283,7 @@ class Kilpailu(ttk.Frame):
 
         kilpailija = Menu(self.master)
         kilpailija.add_command(label="Participant Editor", command=self.open_participant_editor)
+        kilpailija.add_command(label="Spectator View", command=self.open_spectator_view)
         kilpailija.add_command(label="Clear competitor", command=self.clearcompetitor)
         self.menubar.add_cascade(label="kilpailija", menu=kilpailija)
 
@@ -292,6 +306,8 @@ class Kilpailu(ttk.Frame):
             time.strftime("%H:%M:%S", time.gmtime(self.getKisaaika()))
             + (",%02d" % int(((self.getKisaaika() - int(self.getKisaaika())) * 100)))
         )
+        if self.spectator_window and self.spectator_window.winfo_exists():
+             self.spectator_window.update_time(self.timestr.get())
         self._timer = self.after(100, self._update)
 
     def _setTime(self, elap):
@@ -753,6 +769,7 @@ class Kilpailu(ttk.Frame):
                 # self.writeCompetitionTimes(("<dt><strong>"+self.syotanumero.get()+" "+obj.etunimi+" "+obj.sukunimi+"</strong></dt><dd>"+obj.kilpasarja+"</dd><dd>"+obj.seura+"</dd><dd>"+self.ConvertTimeToStringAccurate(obj.totaltime)+"</dd>").replace("ä","&auml"))
                 self.syotanumero.set("")
                 self.strfinished.set("")
+                self.update_spectator()
                 # self.
                 """self.competitionphase.set('narf')"""
 
