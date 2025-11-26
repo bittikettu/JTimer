@@ -25,12 +25,14 @@ class SpectatorView(tk.Toplevel):
         self.recent_frame.grid(row=2, column=0, sticky="nsew", padx=20, pady=20)
         self.recent_frame.columnconfigure(0, weight=1)
         
-        self.recent_tree = ttk.Treeview(self.recent_frame, columns=("rank", "name", "time"), show="headings", height=5)
+        self.recent_tree = ttk.Treeview(self.recent_frame, columns=("rank", "class", "name", "time"), show="headings", height=5)
         self.recent_tree.heading("rank", text="Rank")
+        self.recent_tree.heading("class", text="Class")
         self.recent_tree.heading("name", text="Name")
         self.recent_tree.heading("time", text="Time")
         
         self.recent_tree.column("rank", width=50, anchor="center")
+        self.recent_tree.column("class", width=100, anchor="center")
         self.recent_tree.column("name", width=300)
         self.recent_tree.column("time", width=150, anchor="e")
         
@@ -49,26 +51,41 @@ class SpectatorView(tk.Toplevel):
         for item in self.recent_tree.get_children():
             self.recent_tree.delete(item)
             
-        # Sort by finish time (assuming totaltime is available and valid)
         # Filter only finished competitors
         finished = [c for c in competitors if c.totaltime != 9999999999 and not c.dnf and not c.dns and not c.dsq]
-        # Sort by totaltime descending (most recent finishes might be what we want, but usually "recent" means last added)
-        # Actually, for a "Recent Finishers" list, we probably want the ones who *just* finished.
-        # But without a timestamp of *when* they finished, we can't easily sort by "finish time absolute".
-        # However, the `competitors` list order might not be guaranteed.
-        # Let's try to show the top 5 fastest for now, or if we can, the last ones processed.
-        # Given the current app structure, let's just show the top 5 fastest (Leaderboard style) 
-        # OR we can try to infer "recent" if the app tracks it. 
-        # The app doesn't seem to track "finish timestamp" explicitly other than `totaltime` (race duration).
-        # So "Recent" in a race context usually means "Leaderboard" or "Last on track".
-        # Let's do Leaderboard (Fastest) for now as it's most common for simple displays.
         
-        finished.sort(key=lambda x: x.totaltime)
+        # Calculate class ranks
+        class_results = {}
+        for comp in finished:
+            if comp.kilpasarja not in class_results:
+                class_results[comp.kilpasarja] = []
+            class_results[comp.kilpasarja].append(comp)
+            
+        for cls in class_results:
+            class_results[cls].sort(key=lambda x: x.totaltime)
+
+        # Sort by finish timestamp descending (latest finisher first)
+        # Fallback to totaltime if timestamp is 0 (e.g. old data)
+        finished.sort(key=lambda x: x.finish_timestamp if hasattr(x, 'finish_timestamp') and x.finish_timestamp > 0 else x.totaltime, reverse=True)
         
-        # Show top 10
-        for i, comp in enumerate(finished[:10]):
+        # Show top 20
+        for i, comp in enumerate(finished[:20]):
             time_str = self._format_time(comp.totaltime)
-            self.recent_tree.insert("", "end", values=(i+1, f"{comp.etunimi} {comp.sukunimi}", time_str))
+            
+            # Determine medal
+            medal = ""
+            if comp.kilpasarja in class_results:
+                class_rank = class_results[comp.kilpasarja].index(comp)
+                if class_rank == 0:
+                    medal = "🥇 "
+                elif class_rank == 1:
+                    medal = "🥈 "
+                elif class_rank == 2:
+                    medal = "🥉 "
+            
+            display_name = f"{medal}{comp.etunimi} {comp.sukunimi}"
+            
+            self.recent_tree.insert("", "end", values=(i+1, comp.kilpasarja, display_name, time_str))
 
     def _format_time(self, seconds):
         import time

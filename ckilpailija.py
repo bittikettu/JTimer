@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import time
 
 
 class kilpailija:
@@ -21,6 +22,7 @@ class kilpailija:
         self.lasttime = 0
         self.totaltime = 9999999999
         self.plusrounds = 0
+        self.finish_timestamp = 0
 
     def __str__(self):
         if self.sijoitus == 9999:
@@ -53,6 +55,7 @@ class kilpailija:
             # print(len(self.ajat))
             self.valiajat.append(aika - self.ajat[len(self.ajat) - 2])
             self.totaltime = self.totaltime + self.valiajat[len(self.valiajat) - 1]
+        self.finish_timestamp = time.time()
         print(self.toJSON())
 
     def clear(self):
@@ -67,6 +70,7 @@ class kilpailija:
         self.lasttime = 0
         self.totaltime = 9999999999
         self.plusrounds = 0
+        self.finish_timestamp = 0
 
     def Sijoitus(self, sijoitus):
         self.sijoitus = sijoitus
